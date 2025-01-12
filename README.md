@@ -4,7 +4,7 @@
 
 The `tensorflowjs` files necessary for running the surrogate model are in the `WebSurrogate/tf_model`.  These include a JSON file containing the model structure and metadata and at least one binary file with the model weights.
 
-These files are created with the `TrainSurrogate.ipynb` notebook in the `WebSurrogate` directory.  This notebook relies on one file, `ExampleData.csv`, which is also in the `WebSurrogate` directory. For now, this file is just some data created outside of model runs of the macroeconomic model.  In the future, we will use actual model runs to create these data.
+These files are created with the `TrainSurrogate.ipynb` notebook in the `WebSurrogate` directory.  This notebook relies on one file, `ExampleData.csv`, which is also in the `WebSurrogate` directory. This file contains data created from many runs of the OG-USA model with different parameterizations.  The notebook trains a surrogate model on this data and saves the model weights and structure in the `tf_model` directory.
 
 ## Start a local server
 
