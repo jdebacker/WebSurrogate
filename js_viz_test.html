@@ -6,27 +6,27 @@
 
 <html>
 
-<body onload="loadNPVModel(); loadGDPpcModel(); loadPopModel()">
+<body onload="loadNPVModel(); loadGDP20Model(); loadPopModel()">
 
 
     <h1>Input Parameter Values</h1>
-    <label for="inputMortality">Mortality rate year shift: <div id="demo1">--</div></label>
+    <label for="inputMortality">Mortality rates by age (year shift): <div id="demo1">--</div></label>
     <div class="slidecontainer">
         <input type="range" min=0 max=5 value=0.0 step=0.1 class="slider" id="inputMortality">
     </div>
-    <label for="inputProductivity">Productivity rate year shift: <div id="demo2">--</div></label>
+    <label for="inputProductivity">Productivity rates by age (year shift): <div id="demo2">--</div></label>
     <div class="slidecontainer">
         <input type="range" min=0 max=5 value=0.0 step=0.1 class="slider" id="inputProductivity">
     </div>
-    <label for="inputFertility">Fertility rate year shift: <div id="demo3">--</div></label>
+    <label for="inputFertility">Fertility rates by age (year shift): <div id="demo3">--</div></label>
     <div class="slidecontainer">
         <input type="range" min=0 max=5 value=0.0 step=0.1 class="slider" id="inputFertility">
     </div>
-    <label for="inputR">Interest rate for discounting: <div id="demo4">--</div></label>
+    <label for="inputR">Discount rate: <div id="demo4">--</div></label>
     <div class="slidecontainer">
         <input type="range" min=0.01 max=0.07 value=0.04 step=0.005 class="slider" id="inputR">
     </div>
-    <label for="inputAge">Age at which effects felt: <div id="demo5">--</div></label>
+    <label for="inputAge">Age of population who will benefit: <div id="demo5">--</div></label>
     <div class="slidecontainer">
         <input type="range" min=40 max=65 value=40 class="slider" id="inputAge">
     </div>
@@ -39,13 +39,13 @@
         <input type="range" min=0 max=20 value=10 class="slider" id="inputNumYears">
     </div>
 
-    <h2>Change in GDP (NPV over next 100 years) (Trillions 2025$)</h2>
+    <h2>Long-term return, Trillions of 2025$ (change in GDP over several decades)</h2>
     <label for="outputNPV">NPV:</label>
     <input type="text" id="outputNPV" name="outputNPV" readonly>
-    <h2>Average change in GDP per capita (2025$), 2045-2065</h2>
-    <label for="outputGDPpc">GDP pc:</label>
-    <input type="text" id="outputGDPpc" name="outputGDPpc" readonly>
-    <h2>Increase in population in 2050 (millions of people)</h2>
+    <h2>Yearly GDP change, Billions of 2025$ (average over 2045-2065)</h2>
+    <label for="outputGDP20">GDP:</label>
+    <input type="text" id="outputGDP20" name="outputGDP20" readonly>
+    <h2>Lived saved by 2050 (millions of people)</h2>
     <label for="outputPop">Pop:</label>
     <input type="text" id="outputPop" name="outputPop" readonly>
 
@@ -66,8 +66,8 @@
         return tf.loadLayersModel('/tf_model/NPV/model.json');
 
     }
-    async function loadGDPpcModel() {
-        return tf.loadLayersModel('/tf_model/GDP_PC/model.json');
+    async function loadGDP20Model() {
+        return tf.loadLayersModel('/tf_model/GDP_20/model.json');
 
     }
     async function loadPopModel() {
@@ -86,7 +86,7 @@
     async function doSurrogate() {
         // Get input value
         npv_model = await loadNPVModel();
-        gdp_pc_model = await loadGDPpcModel();
+        GDP_20_model = await loadGDP20Model();
         pop_model = await loadPopModel();
         // const layer = tf.layers.layerNormalization({axis: -1});
         // model.add(layer);
@@ -123,7 +123,7 @@
         );
 
         const prediction_NPV = npv_model.predict(normalizedInputs_NPV);
-        const prediction_GDP_pc = gdp_pc_model.predict(normalizedInputs_GDP_pop);
+        const prediction_GDP_20 = GDP_20_model.predict(normalizedInputs_GDP_pop);
         const prediction_Pop = pop_model.predict(normalizedInputs_GDP_pop);
 
         // Clean up tensors
@@ -132,7 +132,7 @@
         // Display the prediction in the output box
         // console.log(prediction.arraySync()[0]);
         document.getElementById("outputNPV").value = Math.round(prediction_NPV.arraySync()[0][0] * 10) / 10; // The arraySync() method returns the value of the tensor as a nested array.
-        document.getElementById("outputGDPpc").value = Math.round(prediction_GDP_pc.arraySync()[0][0]); // The arraySync() method returns the value of the tensor as a nested array.
+        document.getElementById("outputGDP20").value = Math.round(prediction_GDP_20.arraySync()[0][0]); // The arraySync() method returns the value of the tensor as a nested array.
         document.getElementById("outputPop").value = Math.round(prediction_Pop.arraySync()[0][0] * 10) / 10; // The arraySync() method returns the value of the tensor as a nested array.
     }
 
