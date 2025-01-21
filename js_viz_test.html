@@ -9,7 +9,25 @@
 <body onload="loadNPVModel(); loadGDP20Model(); loadPopModel()">
 
 
-    <h1>Input Parameter Values</h1>
+    <h1>PRIMARY INPUTS</h1>
+    <label for="inputAdoption">Percentage of the population who will benefit: <div id="demo0">--</div></label>
+    <div class="slidecontainer">
+        <input type="range" min=0 max=100 value=50.0 step=1.0 class="slider" id="inputAdoption">
+    </div>
+    <label for="inputAge">Age of population who will benefit: <div id="demo5">--</div></label>
+    <div class="slidecontainer">
+        <input type="range" min=40 max=65 value=40 class="slider" id="inputAge">
+    </div>
+    <label for="inputStartYear">Years until aging treatment enters market: <div id="demo6">--</div></label>
+    <div class="slidecontainer">
+        <input type="range" min=0 max=20 value=10 class="slider" id="inputStartYear">
+    </div>
+    <label for="inputR">Discount rate: <div id="demo4">--</div></label>
+    <div class="slidecontainer">
+        <input type="range" min=0.01 max=0.07 value=0.04 step=0.005 class="slider" id="inputR">
+    </div>
+
+    <h1>SECONDARY INPUTS</h1>
     <label for="inputMortality">Mortality rates by age (year shift): <div id="demo1">--</div></label>
     <div class="slidecontainer">
         <input type="range" min=0 max=5 value=0.0 step=0.1 class="slider" id="inputMortality">
@@ -22,23 +40,13 @@
     <div class="slidecontainer">
         <input type="range" min=0 max=5 value=0.0 step=0.1 class="slider" id="inputFertility">
     </div>
-    <label for="inputR">Discount rate: <div id="demo4">--</div></label>
-    <div class="slidecontainer">
-        <input type="range" min=0.01 max=0.07 value=0.04 step=0.005 class="slider" id="inputR">
-    </div>
-    <label for="inputAge">Age of population who will benefit: <div id="demo5">--</div></label>
-    <div class="slidecontainer">
-        <input type="range" min=40 max=65 value=40 class="slider" id="inputAge">
-    </div>
-    <label for="inputStartYear">Years until aging treatment enters market: <div id="demo6">--</div></label>
-    <div class="slidecontainer">
-        <input type="range" min=0 max=20 value=10 class="slider" id="inputStartYear">
-    </div>
     <label for="inputNumYears">Years from market entry until max adoption of treatment: <div id="demo7">--</div></label>
     <div class="slidecontainer">
         <input type="range" min=0 max=20 value=10 class="slider" id="inputNumYears">
     </div>
 
+    <br>
+    <h1>OUTPUTS</h1>
     <h2>Long-term return, Trillions of 2025$ (change in GDP over several decades)</h2>
     <label for="outputNPV">NPV:</label>
     <input type="text" id="outputNPV" name="outputNPV" readonly>
@@ -88,26 +96,21 @@
         npv_model = await loadNPVModel();
         GDP_20_model = await loadGDP20Model();
         pop_model = await loadPopModel();
-        // const layer = tf.layers.layerNormalization({axis: -1});
-        // model.add(layer);
-        // model.compile({optimizer: 'adam',
-        //       loss: 'meanSquaredError'});
-        // model.add(tf.layers.layerNormalization({axis: -1}));
+
+        const inputAdoption = parseFloat(document.getElementById('inputAdoption').value);
         const inputR = parseFloat(document.getElementById('inputR').value);
         const inputAge = parseFloat(document.getElementById('inputAge').value);
         const inputStartYear = parseFloat(document.getElementById('inputStartYear').value);
         const inputNumYears = parseFloat(document.getElementById('inputNumYears').value);
-        const inputMortality = parseFloat(document.getElementById('inputMortality').value);
-        const inputProductivity = parseFloat(document.getElementById('inputProductivity').value);
-        const inputFertility = parseFloat(document.getElementById('inputFertility').value);
-        // console.log(inputR, inputAge, inputStartYear, inputNumYears, inputMortality, inputFertility, inputProductivity)
+        // Make adjustments to year shifts based on adoption rate
+        const inputMortality = parseFloat(document.getElementById('inputMortality').value) * (inputAdoption / 100);
+        const inputProductivity = parseFloat(document.getElementById('inputProductivity').value) * (inputAdoption / 100);
+        const inputFertility = parseFloat(document.getElementById('inputFertility').value) * (inputAdoption / 100);
+
         // Below list needs to follow same order as the input list used to train the model
         inputTensor_NPV = tf.tensor2d([inputAge, inputStartYear, inputNumYears, inputMortality, inputProductivity, inputFertility, inputR], [1, 7]);
         inputTensor_GDP_pop = tf.tensor2d([inputAge, inputStartYear, inputNumYears, inputMortality, inputProductivity, inputFertility], [1, 6]);
-        // do normalization of inputTensor manually
-        // const inputMean = [5.13029661e+01, 8.42796610e+00, 1.03771186e+01, 1.95040254e+00, 1.84514831e+00, 6.74745763e-01, 3.50000000e-0];
-        // const inputStd = [10.56393728,  8.10256693,  8.24503868,  2.17749157,  2.11576718,  0.6330083, 0.01707825];
-        // inputTensor = inputs.sub(inputMean).div(inputStd);
+
         // Get prediction with new input
 
         // Normalize the inputs
@@ -136,6 +139,8 @@
         document.getElementById("outputPop").value = Math.round(prediction_Pop.arraySync()[0][0] * 10) / 10; // The arraySync() method returns the value of the tensor as a nested array.
     }
 
+        var slider0 = document.getElementById("inputAdoption");
+        var output0 = document.getElementById("demo0");
         var slider1 = document.getElementById("inputMortality");
         var output1 = document.getElementById("demo1");
         var slider2 = document.getElementById("inputProductivity");
@@ -153,6 +158,10 @@
 
 
         // Update the current slider value (each time you drag the slider handle)
+        slider0.oninput = function() {
+            output0.innerHTML = slider0.value; // Display the default slider value
+            doSurrogate()  // Compute the result from the surrogate model
+        }
         slider1.oninput = function() {
             output1.innerHTML = slider1.value; // Display the default slider value
             doSurrogate()  // Compute the result from the surrogate model
