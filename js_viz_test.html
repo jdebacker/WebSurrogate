@@ -30,15 +30,15 @@
     <h1>SECONDARY INPUTS</h1>
     <label for="inputMortality">Mortality rates by age (year shift): <div id="demo1">--</div></label>
     <div class="slidecontainer">
-        <input type="range" min=0 max=5 value=0.0 step=0.1 class="slider" id="inputMortality">
+        <input type="range" min=0 max=5 value=0.0 step=0.01 class="slider" id="inputMortality">
     </div>
     <label for="inputProductivity">Productivity rates by age (year shift): <div id="demo2">--</div></label>
     <div class="slidecontainer">
-        <input type="range" min=0 max=5 value=0.0 step=0.1 class="slider" id="inputProductivity">
+        <input type="range" min=0 max=5 value=0.0 step=0.01 class="slider" id="inputProductivity">
     </div>
     <label for="inputFertility">Fertility rates by age (year shift): <div id="demo3">--</div></label>
     <div class="slidecontainer">
-        <input type="range" min=0 max=5 value=0.0 step=0.1 class="slider" id="inputFertility">
+        <input type="range" min=0 max=5 value=0.0 step=0.01 class="slider" id="inputFertility">
     </div>
     <label for="inputNumYears">Years from market entry until max adoption of treatment: <div id="demo7">--</div></label>
     <div class="slidecontainer">
@@ -53,7 +53,7 @@
     <h2>Yearly GDP change, Billions of 2025$ (average over 2045-2065)</h2>
     <label for="outputGDP20">GDP:</label>
     <input type="text" id="outputGDP20" name="outputGDP20" readonly>
-    <h2>Lived saved by 2050 (millions of people)</h2>
+    <h2>Lives saved by 2050 (thousands of people)</h2>
     <label for="outputPop">Pop:</label>
     <input type="text" id="outputPop" name="outputPop" readonly>
 
@@ -125,9 +125,17 @@
             tf.tensor(inputStds.slice(0, -1))
         );
 
-        const prediction_NPV = npv_model.predict(normalizedInputs_NPV);
-        const prediction_GDP_20 = GDP_20_model.predict(normalizedInputs_GDP_pop);
-        const prediction_Pop = pop_model.predict(normalizedInputs_GDP_pop);
+        prediction_NPV = npv_model.predict(normalizedInputs_NPV);
+        prediction_GDP_20 = GDP_20_model.predict(normalizedInputs_GDP_pop);
+        prediction_Pop = pop_model.predict(normalizedInputs_GDP_pop);
+
+        // If inputMortality, inputProductivity, inputFertility all zero, then set predictions to zero
+        if (inputMortality == 0 && inputProductivity == 0 && inputFertility == 0) {
+            prediction_NPV = tf.tensor2d([[0]]);
+            prediction_GDP_20 = tf.tensor2d([[0]]);
+            prediction_Pop = tf.tensor2d([[0]]);
+        }
+
 
         // Clean up tensors
         tf.dispose([inputTensor_NPV, inputTensor_GDP_pop, normalizedInputs_NPV, normalizedInputs_GDP_pop]);
@@ -136,7 +144,7 @@
         // console.log(prediction.arraySync()[0]);
         document.getElementById("outputNPV").value = Math.round(prediction_NPV.arraySync()[0][0] * 10) / 10; // The arraySync() method returns the value of the tensor as a nested array.
         document.getElementById("outputGDP20").value = Math.round(prediction_GDP_20.arraySync()[0][0]); // The arraySync() method returns the value of the tensor as a nested array.
-        document.getElementById("outputPop").value = Math.round(prediction_Pop.arraySync()[0][0] * 10) / 10; // The arraySync() method returns the value of the tensor as a nested array.
+        document.getElementById("outputPop").value = Math.round(prediction_Pop.arraySync()[0][0] * 100) / 0.1; // The arraySync() method returns the value of the tensor as a nested array.
     }
 
         var slider0 = document.getElementById("inputAdoption");
