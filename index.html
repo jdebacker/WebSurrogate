@@ -105,7 +105,7 @@
         // Make adjustments to year shifts based on adoption rate
         const inputMortality = parseFloat(document.getElementById('inputMortality').value) * (inputAdoption / 100);
         const inputProductivity = parseFloat(document.getElementById('inputProductivity').value) * (inputAdoption / 100);
-        // Take the max of the fertility rate or 0.6 -- this is to prevent the fertility rate from going unrealistically high
+        // Take the max of the fertility rate or 1.2 -- this is to prevent the fertility rate from going unrealistically high
         const inputFertility = Math.max(parseFloat(document.getElementById('inputFertility').value), 1.2) * (inputAdoption / 100);
 
         // Below list needs to follow same order as the input list used to train the model
