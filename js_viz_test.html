@@ -106,7 +106,7 @@
         const inputMortality = parseFloat(document.getElementById('inputMortality').value) * (inputAdoption / 100);
         const inputProductivity = parseFloat(document.getElementById('inputProductivity').value) * (inputAdoption / 100);
         // Take the max of the fertility rate or 1.0 -- this is to prevent the fertility rate from going unrealistically high
-        const inputFertility = Math.max(parseFloat(document.getElementById('inputFertility').value), 1.0) * (inputAdoption / 100);
+        const inputFertility = Math.max(parseFloat(document.getElementById('inputFertility').value), 1.2) * (inputAdoption / 100);
 
         // Below list needs to follow same order as the input list used to train the model
         inputTensor_NPV = tf.tensor2d([inputAge, inputStartYear, inputNumYears, inputMortality, inputProductivity, inputFertility, inputR], [1, 7]);
