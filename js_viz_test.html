@@ -66,20 +66,25 @@
 <script>
     let model;
     // Store normalization parameters
-    const inputMeans = [5.1302979e+01, 8.4279661e+00, 1.0377118e+01, 1.9504026e+00, 1.8451481e+00, 6.7474580e-01, 3.5000000e-02];
-    const inputStds = [10.563937, 8.102567, 8.245038, 2.1774914, 2.1157672, 0.6330082, 0.01707825];
+
+    const inputMeans_NPV = [5.2776817e+01, 9.5691032e+00, 1.1918113e+01, 1.9138159e+00, 1.8849657e+00, 5.6967449e-01, 3.5725899e-02];
+    const inputStds_NPV = [7.722585, 6.052627, 4.905817, 1.651222, 1.629108, 0.47333583, 0.01816189];
+    const inputMeans_GDP20 = [52.84737, 9.623735, 11.991888, 1.9120643, 1.8868718, 0.5646451];
+    const inputStds_GDP20 = [7.5526223, 5.9312673, 4.673948, 1.6217315, 1.6020833, 0.4637205];
+    const inputMeans_Pop = [52.84737, 9.623735, 11.991888, 1.9120643, 0.5646451];
+    const inputStds_Pop = [7.5526223, 5.9312673, 4.673948, 1.6217315, 0.4637205];
 
     // Load the models
     async function loadNPVModel() {
-        return tf.loadLayersModel('/tf_model/NPV/model.json');
+        return tf.loadLayersModel('/tf_model/NPV_Linear_gelu/model.json');
 
     }
     async function loadGDP20Model() {
-        return tf.loadLayersModel('/tf_model/GDP_20/model.json');
+        return tf.loadLayersModel('/tf_model/GDP_20_Linear_gelu/model.json');
 
     }
     async function loadPopModel() {
-        return tf.loadLayersModel('/tf_model/Pop/model.json');
+        return tf.loadLayersModel('/tf_model/Pop_Linear_relu/model.json');
 
     }
 
@@ -94,7 +99,7 @@
     async function doSurrogate() {
         // Get input value
         npv_model = await loadNPVModel();
-        GDP_20_model = await loadGDP20Model();
+        GDP20_model = await loadGDP20Model();
         pop_model = await loadPopModel();
 
         const inputAdoption = parseFloat(document.getElementById('inputAdoption').value);
@@ -110,41 +115,47 @@
 
         // Below list needs to follow same order as the input list used to train the model
         inputTensor_NPV = tf.tensor2d([inputAge, inputStartYear, inputNumYears, inputMortality, inputProductivity, inputFertility, inputR], [1, 7]);
-        inputTensor_GDP_pop = tf.tensor2d([inputAge, inputStartYear, inputNumYears, inputMortality, inputProductivity, inputFertility], [1, 6]);
+        inputTensor_GDP20 = tf.tensor2d([inputAge, inputStartYear, inputNumYears, inputMortality, inputProductivity, inputFertility], [1, 6]);
+        inputTensor_Pop = tf.tensor2d([inputAge, inputStartYear, inputNumYears, inputMortality, inputFertility], [1, 5]);
 
         // Get prediction with new input
 
         // Normalize the inputs
         const normalizedInputs_NPV = normalizeData(
             inputTensor_NPV,
-            tf.tensor(inputMeans),
-            tf.tensor(inputStds)
+            tf.tensor(inputMeans_NPV),
+            tf.tensor(inputStds_NPV)
         );
-        const normalizedInputs_GDP_pop = normalizeData(
-            inputTensor_GDP_pop,
-            tf.tensor(inputMeans.slice(0, -1)),
-            tf.tensor(inputStds.slice(0, -1))
+        const normalizedInputs_GDP20 = normalizeData(
+            inputTensor_GDP20,
+            tf.tensor(inputMeans_GDP20),
+            tf.tensor(inputStds_GDP20)
+        );
+        const normalizedInputs_Pop = normalizeData(
+            inputTensor_Pop,
+            tf.tensor(inputMeans_Pop),
+            tf.tensor(inputStds_Pop)
         );
 
         prediction_NPV = npv_model.predict(normalizedInputs_NPV);
-        prediction_GDP_20 = GDP_20_model.predict(normalizedInputs_GDP_pop);
-        prediction_Pop = pop_model.predict(normalizedInputs_GDP_pop);
+        prediction_GDP20 = GDP20_model.predict(normalizedInputs_GDP);
+        prediction_Pop = pop_model.predict(normalizedInputs_Pop);
 
         // If inputMortality, inputProductivity, inputFertility all zero, then set predictions to zero
         if (inputMortality == 0 && inputProductivity == 0 && inputFertility == 0) {
             prediction_NPV = tf.tensor2d([[0]]);
-            prediction_GDP_20 = tf.tensor2d([[0]]);
+            prediction_GDP20 = tf.tensor2d([[0]]);
             prediction_Pop = tf.tensor2d([[0]]);
         }
 
 
         // Clean up tensors
-        tf.dispose([inputTensor_NPV, inputTensor_GDP_pop, normalizedInputs_NPV, normalizedInputs_GDP_pop]);
+        tf.dispose([inputTensor_NPV, inputTensor_GDP, inputTensor_Pop, normalizedInputs_NPV, normalizedInputs_GDP20, normalizedInputs_Pop]);
 
         // Display the prediction in the output box
         // console.log(prediction.arraySync()[0]);
         document.getElementById("outputNPV").value = Math.round(prediction_NPV.arraySync()[0][0] * 10) / 10; // The arraySync() method returns the value of the tensor as a nested array.
-        document.getElementById("outputGDP20").value = Math.round(prediction_GDP_20.arraySync()[0][0]); // The arraySync() method returns the value of the tensor as a nested array.
+        document.getElementById("outputGDP20").value = Math.round(prediction_GDP20.arraySync()[0][0]); // The arraySync() method returns the value of the tensor as a nested array.
         document.getElementById("outputPop").value = Math.round(prediction_Pop.arraySync()[0][0] * 100) / 0.1; // The arraySync() method returns the value of the tensor as a nested array.
     }
 
