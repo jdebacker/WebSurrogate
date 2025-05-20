@@ -138,7 +138,7 @@
         );
 
         prediction_NPV = npv_model.predict(normalizedInputs_NPV);
-        prediction_GDP20 = GDP20_model.predict(normalizedInputs_GDP);
+        prediction_GDP20 = GDP20_model.predict(normalizedInputs_GDP20);
         prediction_Pop = pop_model.predict(normalizedInputs_Pop);
 
         // If inputMortality, inputProductivity, inputFertility all zero, then set predictions to zero
@@ -150,7 +150,7 @@
 
 
         // Clean up tensors
-        tf.dispose([inputTensor_NPV, inputTensor_GDP, inputTensor_Pop, normalizedInputs_NPV, normalizedInputs_GDP20, normalizedInputs_Pop]);
+        tf.dispose([inputTensor_NPV, inputTensor_GDP20, inputTensor_Pop, normalizedInputs_NPV, normalizedInputs_GDP20, normalizedInputs_Pop]);
 
         // Display the prediction in the output box
         // console.log(prediction.arraySync()[0]);
